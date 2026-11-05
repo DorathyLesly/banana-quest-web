@@ -1,0 +1,3 @@
+import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+export const players = sqliteTable("players", { username: text("username").primaryKey(), displayName: text("display_name").notNull(), salt: text("salt").notNull(), passwordHash: text("password_hash").notNull(), best: integer("best").notNull().default(0), games: integer("games").notNull().default(0), failures: integer("failures").notNull().default(0), lockedUntil: integer("locked_until").notNull().default(0) });
+export const sessions = sqliteTable("sessions", { token: text("token").primaryKey(), username: text("username").notNull().references(()=>players.username), expires: integer("expires").notNull(), game: text("game"), revision: integer("revision").notNull().default(0) });
