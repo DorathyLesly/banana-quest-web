@@ -13,6 +13,9 @@ try{
  check(await page.locator('video').evaluate(v=>v.currentSrc.endsWith('/intro.mp4')),'Intro video missing');
  await page.screenshot({path:'outputs/intro-desktop.png'});
  await page.getByRole('button',{name:'Start now',exact:true}).click();
+ await page.locator('.auth-card').waitFor();
+ await page.waitForTimeout(650);
+ await page.screenshot({path:'outputs/login-desktop.png'});
  await page.getByRole('button',{name:'Create an account',exact:true}).click();
  await page.getByLabel('Username',{exact:true}).fill(name);
  await page.getByLabel('Password',{exact:true}).fill('Jungle123!');
@@ -29,15 +32,29 @@ try{
  await page.getByLabel('Password',{exact:true}).fill('Jungle123!');
  await page.getByRole('button',{name:'Log in & let’s play'}).click();
  await page.getByRole('button',{name:'Let’s play',exact:true}).waitFor({timeout:30000});
+ await page.waitForTimeout(750);
  await page.screenshot({path:'outputs/menu-desktop.png'});
+ check(await page.locator('.stage-card.locked').count()===2,'Stage map locked states missing');
+ check(await page.locator('.world-atmosphere .firefly').count()===14,'Animated jungle atmosphere missing');
+ await page.setViewportSize({width:390,height:844});
+ check(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),'Mobile menu horizontal overflow');
+ await page.screenshot({path:'outputs/menu-mobile.png',fullPage:true});
+ await page.setViewportSize({width:1440,height:960});
  await page.getByRole('button',{name:'Let’s play',exact:true}).click();
  await page.getByRole('button',{name:'Answer 0',exact:true}).waitFor({timeout:30000});
  await page.locator('.puzzle-board>img').evaluate(img=>img.decode());
  await page.screenshot({path:'outputs/game-desktop.png'});
- let game=(await (await context.request.get('http://localhost:5173/api/session')).json()).game;
- for(let count=0;count<3;count++){
+ await page.getByRole('button',{name:'Enable game sounds',exact:true}).click();
+ const answerResponse=page.waitForResponse(r=>r.url().endsWith('/api/answer')&&r.request().method()==='POST');
+ await page.getByRole('button',{name:'Answer 0',exact:true}).click();
+ let game=(await (await answerResponse).json()).game;
+ await page.locator('.answer-effect').waitFor();
+ check(await page.getByRole('button',{name:'Mute game sounds',exact:true}).count()===1,'Sound toggle did not activate');
+ for(let count=game.completed;count<3;count++){
   for(let digit=0;digit<10;digit++){
-   const response=await context.request.post('http://localhost:5173/api/answer',{data:{answer:digit}});
+   const pendingAnswer=page.waitForResponse(r=>r.url().endsWith('/api/answer')&&r.request().method()==='POST');
+   await page.getByRole('button',{name:`Answer ${digit}`,exact:true}).click();
+   const response=await pendingAnswer;
    const data=await response.json();check(response.ok(),JSON.stringify(data));game=data.game;
    if(game.completed>count||game.status!=='playing')break;
   }
@@ -58,5 +75,5 @@ try{
  const denied=await context.request.post('http://localhost:5173/api/start',{data:{}});
  check(denied.status()===401,'Unauthenticated game access was accepted');
  check(errors.length===0,'Browser errors: '+errors.join('; '));
- console.log('PASS: video intro, password confirmation, registration, wrong-password rejection, login, gameplay, first-stage completion, stage progression, persisted session/resume, mobile layout, logout and unauthenticated access rejection.');
+ console.log('PASS: video intro, password confirmation, registration, wrong-password rejection, login, gameplay, first-stage completion, stage progression, persisted session/resume, mobile menu/game layouts, arcade map locks, sound toggle, answer animations, logout and unauthenticated access rejection.');
 }finally{await browser.close()}

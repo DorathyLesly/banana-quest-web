@@ -1,6 +1,6 @@
 # Banana Quest — React website
 
-A React 19 and TypeScript conversion of the Banana Quest desktop game, with a Vinext/Vite server and Cloudflare D1 account storage.
+An animated jungle arcade game built with React 19 and TypeScript, converted of the Banana Quest desktop game, with a Vinext/Vite server and Cloudflare D1 account storage.
 
 ## Run locally
 
@@ -17,6 +17,10 @@ For a fresh checkout:
 4. Run `npm run dev -- --port 5173`.
 
 ## Features
+
+- Cartoon jungle world with a monkey guide, fireflies, drifting leaves, dimensional wooden panels and gold arcade controls.
+- Quest-map menu with stage unlock indicators, score HUD, character animations and trophy leaderboard.
+- Correct-answer points bursts/confetti, wrong-answer board shake, urgent timer animation, optional synthesized sound effects and reduced-motion styling.
 
 - Full-viewport monkeys-and-bananas MP4 intro, looping with a poster, sound toggle, pause and fullscreen controls. Browsers autoplay it muted; enable sound with the sound button.
 - Separate registration and login screens. Register a 3–20 character username and a password with at least six characters, one letter and one number.
@@ -38,7 +42,8 @@ The website uses its own account database. Desktop account files remain unchange
 ## Source map
 
 - `app/page.tsx`: React screens and gameplay UI.
-- `app/globals.css`: responsive banana/grove styling and animation.
+- `app/globals.css`: responsive jungle arcade styling, dimensional controls and animations.
+- `public/jungle-world.png` and `public/monkey-guide.png`: original generated game artwork.
 - `app/api/[action]/route.ts`: accounts, sessions, Banana API, game rules and scores.
 - `db/schema.ts` and `drizzle/`: account/session schema and migration.
 - `public/intro.mp4`: your uploaded monkeys-and-bananas video.

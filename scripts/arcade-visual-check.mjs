@@ -1,0 +1,10 @@
+import {chromium} from '@playwright/test';
+const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
+const context=await browser.newContext({viewport:{width:390,height:844}});
+const name='visual_'+Date.now().toString().slice(-8);
+await context.request.post('http://localhost:5173/api/register',{data:{username:name,password:'Jungle123!'}});
+await context.request.post('http://localhost:5173/api/login',{data:{username:name,password:'Jungle123!'}});
+const page=await context.newPage();await page.goto('http://localhost:5173');await page.getByRole('button',{name:'Start now',exact:true}).click();
+await page.locator('.adventure-map').waitFor();await page.waitForTimeout(700);
+console.log(await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,overflow:[...document.querySelectorAll('main *')].map(e=>({element:e.tagName,cls:e.className,left:e.getBoundingClientRect().left,right:e.getBoundingClientRect().right})).filter(e=>e.right>innerWidth+1||e.left< -1).slice(0,25)})));
+await page.screenshot({path:'outputs/menu-mobile.png',fullPage:true});await browser.close();
