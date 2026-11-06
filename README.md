@@ -1,6 +1,6 @@
 # Banana Quest — React website
 
-An animated jungle arcade game built with React 19 and TypeScript, converted of the Banana Quest desktop game, with a Vinext/Vite server and Cloudflare D1 account storage.
+An animated jungle arcade game built with React 19 and TypeScript, converted from the Banana Quest desktop game, with a Vinext/Vite server and Cloudflare D1 account storage.
 
 ## Run locally
 
@@ -14,9 +14,15 @@ For a fresh checkout:
 2. Run `npm run build`.
 3. Apply each SQL migration in `drizzle/` once, in filename order:
    `node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_fixed_captain_britain.sql`
+   Then apply `drizzle/0001_fat_the_renegades.sql` with the same command, substituting that filename. Existing checkouts must only apply new, unapplied migrations.
 4. Run `npm run dev -- --port 5173`.
 
 ## Features
+
+- Minimal game screens: video/title/Start on the intro, concise forms and game controls, and rules shown only on demand.
+- Persistent coins: 10 per correct answer, stage-clear bonuses of 25/50/75, and a 100-coin victory bonus. Animated coin collection updates the wallet immediately.
+- Score and coin leaderboard tabs with stable ranking, highlighted current player and a pinned own rank outside the top ten.
+- Optimistic session revisions and an atomic reward ledger protect balances from duplicate or concurrent claims.
 
 - Cartoon jungle world with a monkey guide, fireflies, drifting leaves, dimensional wooden panels and gold arcade controls.
 - Quest-map menu with stage unlock indicators, score HUD, character animations and trophy leaderboard.
@@ -38,6 +44,8 @@ The website uses its own account database. Desktop account files remain unchange
 - `npx tsc --noEmit`
 - `npm run build`
 - Start the local preview, then `node scripts/game-browser-test.mjs`. The test uses Chrome at its standard Windows install path and creates isolated test accounts in the local database. Screenshots are written to ignored `outputs/`.
+
+- `node scripts/coin-rewards-test.mjs`: checks exact rewards, duplicate/concurrent completion protection, leaderboard ordering and persisted balances. It uses a temporary local test account and removes it afterward.
 
 ## Source map
 
