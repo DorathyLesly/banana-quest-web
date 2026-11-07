@@ -25,7 +25,7 @@ For a fresh checkout:
 - Optimistic session revisions and an atomic reward ledger protect balances from duplicate or concurrent claims.
 
 - Cartoon jungle world with a monkey guide, fireflies, drifting leaves, dimensional wooden panels and gold arcade controls.
-- Quest-map menu with stage unlock indicators, score HUD, character animations and trophy leaderboard.
+- Word-free monkey stage selector with animated faces, number badges, stars and locks. Available monkey buttons start or resume the correct stage; clearing a stage unlocks the next button. The menu also includes the score HUD and leaderboard.
 - Correct-answer points bursts/confetti, wrong-answer board shake, urgent timer animation, optional synthesized sound effects and reduced-motion styling.
 
 - Full-viewport monkeys-and-bananas MP4 intro, looping with a poster, sound toggle, pause and fullscreen controls. Browsers autoplay it muted; enable sound with the sound button.

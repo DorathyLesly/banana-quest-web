@@ -38,12 +38,15 @@ try{
  await page.waitForTimeout(750);
  await page.screenshot({path:'outputs/menu-desktop.png'});
  check(await page.locator('.stage-card.locked').count()===2,'Stage map locked states missing');
+ check(!/[A-Za-z]/.test(await page.locator('.monkey-map').innerText()),'Monkey stage map should have no visible word labels');
+ check((await page.locator('.monkey-stage-number').allTextContents()).join('')==='123','Stage number badges are missing');
+ check(await page.getByRole('button',{name:/^Stage 2:/}).isDisabled(),'Locked monkey stage accepted input');
  check(await page.locator('.world-atmosphere .firefly').count()===14,'Animated jungle atmosphere missing');
  await page.setViewportSize({width:390,height:844});
  check(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),'Mobile menu horizontal overflow');
  await page.screenshot({path:'outputs/menu-mobile.png',fullPage:true});
  await page.setViewportSize({width:1440,height:960});
- await page.getByRole('button',{name:'Play',exact:true}).click();
+ await page.getByRole('button',{name:/^Stage 1:/}).click();
  await page.getByRole('button',{name:'Answer 0',exact:true}).waitFor({timeout:30000});
  await page.locator('.wallet').waitFor();
  await page.locator('.puzzle-board>img').evaluate(img=>img.decode());
@@ -75,7 +78,11 @@ try{
  await page.waitForTimeout(300);
  await page.screenshot({path:'outputs/leaderboard-desktop.png'});
  await page.getByRole('button',{name:'Close',exact:true}).click();
- const next=await (await context.request.post('http://localhost:5173/api/continue',{data:{}})).json();
+ await page.locator('.game-heading').getByRole('button',{name:'Menu',exact:true}).click();
+ check(await page.getByRole('button',{name:/^Stage 2:/}).isEnabled(),'Clearing a stage did not unlock its monkey button');
+ const nextResponse=page.waitForResponse(r=>r.url().endsWith('/api/continue')&&r.request().method()==='POST');
+ await page.getByRole('button',{name:/^Stage 2:/}).click();
+ const next=await(await nextResponse).json();
  check(next.game.level===1&&next.game.status==='playing','Stage progression failed');
  await page.reload();await page.getByRole('button',{name:'Start now',exact:true}).click();
  await page.getByRole('button',{name:'Resume'}).click();
@@ -88,7 +95,7 @@ try{
  check(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),'Mobile leaderboard horizontal overflow');
  await page.screenshot({path:'outputs/leaderboard-mobile.png',fullPage:true});
  await page.getByRole('button',{name:'Close',exact:true}).click();
- await page.getByRole('button',{name:'Menu',exact:true}).click();
+ await page.locator('.game-heading').getByRole('button',{name:'Menu',exact:true}).click();
  await page.getByRole('button',{name:'Log out',exact:true}).click();
  await page.getByRole('button',{name:'Log in'}).waitFor();
  await page.screenshot({path:'outputs/login-mobile.png',fullPage:true});
@@ -100,7 +107,7 @@ try{
  await page.getByRole('button',{name:'Play',exact:true}).waitFor();
  await page.locator('.wallet').filter({hasText:'55'}).waitFor();
  check(errors.length===0,'Browser errors: '+errors.join('; '));
- console.log('PASS: video intro, password confirmation, registration, wrong-password rejection, login, gameplay, first-stage completion, stage progression, persisted session/resume, mobile menu/game layouts, arcade map locks, sound toggle, answer animations, coin rewards, score/coin leaderboard, wallet persistence, logout and unauthenticated access rejection.');
+ console.log('PASS: video intro, password confirmation, registration, wrong-password rejection, login, gameplay, first-stage completion, stage progression, persisted session/resume, mobile menu/game layouts, text-free monkey stage buttons, stage unlock/navigation, sound toggle, answer animations, coin rewards, score/coin leaderboard, wallet persistence, logout and unauthenticated access rejection.');
  }finally{
  await browser.close();
  const cleanup=String.raw`import sqlite3,sys,re
