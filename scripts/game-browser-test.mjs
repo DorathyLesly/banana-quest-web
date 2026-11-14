@@ -48,7 +48,7 @@ try{
  await page.setViewportSize({width:1440,height:960});
  await page.getByRole('button',{name:/^Stage 1:/}).click();
  await page.getByRole('button',{name:'Answer 0',exact:true}).waitFor({timeout:30000});
- await page.locator('.wallet').waitFor();
+ await page.locator('.wallet[title="Coins"]').waitFor();
  await page.locator('.puzzle-board>img').evaluate(img=>img.decode());
  await page.screenshot({path:'outputs/game-desktop.png'});
  await page.getByRole('button',{name:'Enable game sounds',exact:true}).click();
@@ -70,7 +70,7 @@ try{
  const coins=(await (await context.request.get('http://localhost:5173/api/session')).json()).user.coins;
  check(coins===55,'Expected 30 answer coins plus 25 stage bonus, got '+coins);
  check(game.coinsEarned===55,'Run coin total is wrong');
- await page.locator('.wallet').filter({hasText:'55'}).waitFor();
+ await page.locator('.wallet[title="Coins"]').filter({hasText:'55'}).waitFor();
  await page.locator('.leaderboard-shortcut').click();
  await page.getByRole('dialog').getByText(name,{exact:false}).waitFor();
  await page.getByRole('tab',{name:'Coins',exact:true}).click();
@@ -105,7 +105,7 @@ try{
  await page.getByLabel('Password',{exact:true}).fill('Jungle123!');
  await page.getByRole('button',{name:'Log in',exact:true}).click();
  await page.getByRole('button',{name:'Play',exact:true}).waitFor();
- await page.locator('.wallet').filter({hasText:'55'}).waitFor();
+ await page.locator('.wallet[title="Coins"]').filter({hasText:'55'}).waitFor();
  check(errors.length===0,'Browser errors: '+errors.join('; '));
  console.log('PASS: video intro, password confirmation, registration, wrong-password rejection, login, gameplay, first-stage completion, stage progression, persisted session/resume, mobile menu/game layouts, text-free monkey stage buttons, stage unlock/navigation, sound toggle, answer animations, coin rewards, score/coin leaderboard, wallet persistence, logout and unauthenticated access rejection.');
  }finally{

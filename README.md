@@ -1,6 +1,6 @@
-# Banana Quest — React website
+# Jungle Digits — React website
 
-An animated jungle arcade game built with React 19 and TypeScript, converted from the Banana Quest desktop game, with a Vinext/Vite server and Cloudflare D1 account storage.
+An animated jungle arcade game built with React 19 and TypeScript, converted from the Jungle Digits desktop game, with a Vinext/Vite server and Cloudflare D1 account storage.
 
 ## Run locally
 
@@ -57,4 +57,21 @@ The website uses its own account database. Desktop account files remain unchange
 - `public/intro.mp4`: your uploaded monkeys-and-bananas video.
 - `.openai/hosting.json`: private Sites identity and D1 binding.
 
-The original Java desktop application remains in `../Game`.
+The original Java desktop application is archived outside this project at `C:\Users\ASUS\Downloads\Jungle-Digits-Java-Backup`.
+## Environment settings
+
+Local configuration lives in .env at the project root. Copy .env.example to
+.env on a new checkout. Restart the development server after editing.
+
+- BANANA_API_URL: the public Banana API endpoint.
+- BANANA_API_TIMEOUT_MS: timeout for each API/image request, 100-30000 milliseconds.
+  Invalid timeout values fall back to 6500 milliseconds.
+
+Vite loads these settings and passes only these two values into local Worker
+bindings. They are used by server code, not exposed as browser VITE_ variables.
+The database remains a D1 DB binding configured in .openai/hosting.json;
+it is not a database URL or password in .env.
+
+.env is ignored by Git; .env.example is included for setup.
+For hosted deployments configure the same runtime variables in Sites.
+Local environment values are not baked into production builds.

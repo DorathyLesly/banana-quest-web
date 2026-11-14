@@ -1,6 +1,7 @@
+// Server migration assisted by OpenAI Codex; see MIGRATION.md.
+import { LEVELS } from "@/lib/game";
 import { env } from "cloudflare:workers";
 export const dynamic = "force-dynamic";
-const LEVELS = [{name:"Little Sprout",count:3,time:45,multiplier:1},{name:"Jungle Explorer",count:5,time:30,multiplier:2},{name:"Banana Legend",count:7,time:18,multiplier:3}];
 const json=(value:unknown,status=200,headers:Record<string,string>={})=>Response.json(value,{status,headers:{"Cache-Control":"no-store",...headers}});
 const hex=(b:ArrayBuffer|Uint8Array)=>Array.from(new Uint8Array(b instanceof Uint8Array?b.buffer:b),x=>x.toString(16).padStart(2,"0")).join("");
 const random=()=>hex(crypto.getRandomValues(new Uint8Array(32)));
@@ -8,13 +9,15 @@ async function hash(value:string){return hex(await crypto.subtle.digest("SHA-256
 async function password(value:string,salt:string){const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(value),"PBKDF2",false,["deriveBits"]);return hex(await crypto.subtle.deriveBits({name:"PBKDF2",salt:new TextEncoder().encode(salt),iterations:100000,hash:"SHA-256"},key,256))}
 function equal(a:string,b:string){let diff=a.length^b.length;for(let i=0;i<Math.max(a.length,b.length);i++)diff|=(a.charCodeAt(i)||0)^(b.charCodeAt(i)||0);return diff===0}
 async function puzzle(){
+ const configuredTimeout=Number(env.BANANA_API_TIMEOUT_MS||6500);
+ const timeout=Number.isFinite(configuredTimeout)&&configuredTimeout>=100&&configuredTimeout<=30000?Math.floor(configuredTimeout):6500;
  try {
-  const response=await fetch("https://marcconrad.com/uob/banana/api.php?out=json",{signal:AbortSignal.timeout(6500),headers:{Accept:"application/json"}});
+  const response=await fetch(env.BANANA_API_URL||"https://marcconrad.com/uob/banana/api.php?out=json",{signal:AbortSignal.timeout(timeout),headers:{Accept:"application/json"}});
   if(!response.ok)throw Error("API unavailable");
   const data=await response.json() as any; const solution=Number(data.solution); const url=new URL(data.question);
   if(!Number.isInteger(solution)||solution<0||solution>9||!["www.sanfoh.com","sanfoh.com","marcconrad.com"].includes(url.hostname)||!url.pathname.includes("/banana/"))throw Error("Invalid puzzle");
   url.protocol="https:";
-  const imageResponse=await fetch(url.href,{signal:AbortSignal.timeout(6500)});
+  const imageResponse=await fetch(url.href,{signal:AbortSignal.timeout(timeout)});
   if(!imageResponse.ok)throw Error("Puzzle image unavailable");
   const type=imageResponse.headers.get("content-type")?.split(";")[0]||"image/png";
   if(!["image/png","image/jpeg","image/webp","image/gif"].includes(type))throw Error("Unsupported puzzle image");
