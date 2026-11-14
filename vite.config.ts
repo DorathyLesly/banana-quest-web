@@ -1,5 +1,5 @@
 import vinext from "vinext";
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import hostingConfig from "./.openai/hosting.json";
 import { readExecutionProfile } from "./scripts/execution-profile.mjs";
 import { configureToolEnvironment } from "./scripts/tool-environment.mjs";
@@ -37,7 +37,8 @@ const localBindingConfig = {
     : [],
 };
 
-export default defineConfig(async ({ command }) => {
+export default defineConfig(async ({ command, mode }) => {
+  const localEnv = loadEnv(mode, process.cwd(), "BANANA_");
   configureToolEnvironment(process.cwd());
 
   // Wrangler snapshots its log path while the Cloudflare plugin is imported.
@@ -61,6 +62,10 @@ export default defineConfig(async ({ command }) => {
         inspectorPort: false,
         config: {
           ...localBindingConfig,
+          ...(command === "serve" ? { vars: {
+            BANANA_API_URL: localEnv.BANANA_API_URL || "https://marcconrad.com/uob/banana/api.php?out=json",
+            BANANA_API_TIMEOUT_MS: localEnv.BANANA_API_TIMEOUT_MS || "6500",
+          } } : {}),
           ...(command === "serve"
             ? {
                 services: [
