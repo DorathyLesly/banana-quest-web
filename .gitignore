@@ -46,3 +46,6 @@ yarn-error.log*
 
 # Track the environment template, not local values.
 !.env.example
+
+# Local development server output
+/browser-server.log
