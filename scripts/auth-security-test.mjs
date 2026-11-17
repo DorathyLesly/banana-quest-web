@@ -16,10 +16,17 @@ async function request(action,body,origin="https://game.test"){const method=body
 assert.equal((await request("mfa-status",{})).response.status,405);
 assert.equal((await request("auth-config",{})).response.status,405);
 assert.equal((await request("mfa-status")).data.mfaPending,false);
+assert.equal((await request("profile")).response.status,401);
+assert.equal((await request("profile",{})).response.status,405);
 const credentials={username:"security_test",password:"Test123!"};
 assert.equal(await totp.generateTOTP("GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",59),"287082");
 assert.equal((await request("register",credentials)).response.status,200);
 assert.equal((await request("login",credentials)).response.status,200);
+const ownProfile=(await request("profile?username=another_player")).data.profile;
+assert.equal(ownProfile.username,credentials.username);
+assert.deepEqual(Object.keys(ownProfile).sort(),["username","name","email","provider","best","coins","games","mfaEnabled"].sort());
+assert.equal(ownProfile.mfaEnabled,false);
+
 assert.equal((await request("mfa-setup",credentials,"https://evil.test")).response.status,403);
 const setup=(await request("mfa-setup",credentials)).data;assert.ok(setup.secret&&setup.uri.startsWith("otpauth://"));
 assert.equal((await request("mfa-enable",{code:"bad"})).response.status,400);

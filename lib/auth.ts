@@ -70,11 +70,11 @@ async function verifyFactor(user: any, code: string) {
 }
 export async function authHandler(request: Request): Promise<Response | null> {
     const url = new URL(request.url), action = url.pathname.slice(5), db = env.DB!;
-    if (!["auth-config", "mfa-status", "mfa-login", "mfa-cancel", "security", "mfa-setup", "mfa-enable", "mfa-disable", "mfa-backup"].includes(action) && !action.startsWith("oauth/"))
+    if (!["profile", "auth-config", "mfa-status", "mfa-login", "mfa-cancel", "security", "mfa-setup", "mfa-enable", "mfa-disable", "mfa-backup"].includes(action) && !action.startsWith("oauth/"))
         return null;
     if (!db)
         return json({ error: "Account storage is unavailable." }, 503);
-    if (["auth-config", "mfa-status", "security"].includes(action) && request.method !== "GET")
+    if (["profile", "auth-config", "mfa-status", "security"].includes(action) && request.method !== "GET")
         return json({ error: "Use GET for this action." }, 405);
     if (request.method === "POST" && request.headers.get("origin") && request.headers.get("origin") !== url.origin)
         return json({ error: "Invalid request origin." }, 403);
@@ -138,7 +138,7 @@ export async function authHandler(request: Request): Promise<Response | null> {
     }
     if (!["GET", "POST"].includes(request.method))
         return json({ error: "Method not allowed." }, 405);
-    if (action !== "security" && request.method !== "POST")
+    if (!["security", "profile"].includes(action) && request.method !== "POST")
         return json({ error: "Use POST." }, 405);
     const body = request.method === "POST" ? await request.json().catch(() => ({})) as any : {};
     if (action === "mfa-cancel") {
@@ -167,6 +167,14 @@ export async function authHandler(request: Request): Promise<Response | null> {
     if (!session)
         return json({ error: "Please log in." }, 401);
     const user = await db.prepare("SELECT * FROM players WHERE username=?").bind(session.username).first<any>();
+    if (action === "profile") {
+        if (!user) return json({ error: "Please log in." }, 401);
+        return json({ profile: {
+            username: user.username, name: user.display_name, email: user.email || null,
+            provider: user.oauth_provider || "password", best: user.best, coins: user.coins,
+            games: user.games, mfaEnabled: !!user.mfa_enabled
+        } });
+    }
     if (action === "security")
         return json({ enabled: !!user.mfa_enabled, hasPassword: !!user.password_hash, provider: user.oauth_provider, backupRemaining: JSON.parse(user.mfa_backup_codes || "[]").length, available: !!env.MFA_ENCRYPTION_KEY });
     if (user.locked_until > Date.now())
