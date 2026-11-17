@@ -78,3 +78,11 @@ Local environment values are not baked into production builds.
 ## Multifactor authentication and third-party sign-in
 
 See [AUTH_SETUP.md](AUTH_SETUP.md) for MFA use, provider registration, exact callback URLs, environment configuration, database migration, and security verification.
+
+## Redux state
+
+Redux Toolkit and React Redux manage shared account details, profile loading, and the current server-provided game snapshot. `lib/store.ts` defines the slices and async profile request; `lib/store-hooks.ts` supplies typed hooks; `components/store-provider.tsx` creates a separate store per app instance. The root layout provides the store to the game and profile routes. Internal profile links use client navigation to retain that store.
+
+Form values, MFA codes, and temporary dialogs stay in local React state. Session cookies and MFA secrets stay on the server. Redux state is not persisted to browser storage; refreshing restores it through the authenticated APIs. Logout clears shared account/profile/game state, and stale profile responses are ignored.
+
+Run `node --experimental-vm-modules scripts/redux-state-test.mjs` for store isolation, logout, request-ordering, and profile-error checks.
