@@ -49,3 +49,7 @@ yarn-error.log*
 
 # Local development server output
 /browser-server.log
+
+/.google-oauth*.json
+
+/client_secret_*.json

@@ -1,3 +1,4 @@
+import { authHandler, finishLogin } from "@/lib/auth";
 // Server migration assisted by OpenAI Codex; see MIGRATION.md.
 import { LEVELS } from "@/lib/game";
 import { env } from "cloudflare:workers";
@@ -33,6 +34,7 @@ async function puzzle(){
 }
 function publicGame(game:any){if(!game)return null; const {solution,...current}=game.puzzle||{};return {...game,puzzle:game.puzzle?current:null,serverNow:Date.now(),config:LEVELS[game.level]}}
 async function handler(request:Request){
+ const authResponse=await authHandler(request);if(authResponse)return authResponse;
  const db=env.DB!; if(!db)return json({error:"Account storage is unavailable. Please try again later."},503);
  const action=new URL(request.url).pathname.split("/").pop();
  if(request.method==="POST"&&request.headers.get("origin")&&request.headers.get("origin")!==new URL(request.url).origin)return json({error:"Invalid request origin."},403);
@@ -55,9 +57,8 @@ async function handler(request:Request){
   if(user?.locked_until>Date.now())return json({error:"Too many attempts. Please wait 30 seconds."},429);
   const valid=equal(await password(pass,user?.salt||"unknown-player"),user?.password_hash||"");
   if(!user||!valid){if(user)await db.prepare("UPDATE players SET failures=?,locked_until=? WHERE username=?").bind((user.failures+1)%5,user.failures>=4?Date.now()+30000:0,username).run();return json({error:"Username or password is incorrect."},401)}
-  await db.prepare("UPDATE players SET failures=0,locked_until=0 WHERE username=?").bind(username).run();
-  const raw=random(); await db.prepare("INSERT INTO sessions(token,username,expires) VALUES(?,?,?)").bind(await hash(raw),username,Date.now()+7*86400000).run();
-  return json({user:{name:user.display_name,best:user.best,games:user.games,coins:user.coins}},200,{"Set-Cookie":`bq_session=${raw}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800${new URL(request.url).protocol==="https:"?"; Secure":""}`});
+  if(!user.mfa_enabled)await db.prepare("UPDATE players SET failures=0,locked_until=0 WHERE username=?").bind(username).run();
+  return finishLogin(request,user);
  }
  if(!session)return json({error:"Please log in to play."},401);
  const user:any=await db.prepare("SELECT display_name,best,games,coins FROM players WHERE username=?").bind(session.username).first();

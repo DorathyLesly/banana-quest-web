@@ -1,6 +1,7 @@
 import vinext from "vinext";
 import { defineConfig, loadEnv } from "vite";
-import hostingConfig from "./.openai/hosting.json";
+import { readFileSync } from "node:fs";
+const hostingConfig: {d1?:string;r2?:string|null;project_id?:string}=(()=>{try{return JSON.parse(readFileSync(new URL("./.openai/hosting.json",import.meta.url),"utf8"))}catch(error){if((error as NodeJS.ErrnoException).code!=="ENOENT")throw error;return {d1:"DB",r2:null}}})();
 import { readExecutionProfile } from "./scripts/execution-profile.mjs";
 import { configureToolEnvironment } from "./scripts/tool-environment.mjs";
 import { sites } from "./scripts/vite/sites-vite-plugin";
@@ -38,7 +39,7 @@ const localBindingConfig = {
 };
 
 export default defineConfig(async ({ command, mode }) => {
-  const localEnv = loadEnv(mode, process.cwd(), "BANANA_");
+  const localEnv = loadEnv(mode, process.cwd(), ["BANANA_", "AUTH_", "GOOGLE_", "GITHUB_", "MFA_"]);
   configureToolEnvironment(process.cwd());
 
   // Wrangler snapshots its log path while the Cloudflare plugin is imported.
@@ -63,6 +64,7 @@ export default defineConfig(async ({ command, mode }) => {
         config: {
           ...localBindingConfig,
           ...(command === "serve" ? { vars: {
+            ...localEnv,
             BANANA_API_URL: localEnv.BANANA_API_URL || "https://marcconrad.com/uob/banana/api.php?out=json",
             BANANA_API_TIMEOUT_MS: localEnv.BANANA_API_TIMEOUT_MS || "6500",
           } } : {}),

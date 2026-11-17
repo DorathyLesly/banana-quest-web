@@ -75,3 +75,6 @@ it is not a database URL or password in .env.
 .env is ignored by Git; .env.example is included for setup.
 For hosted deployments configure the same runtime variables in Sites.
 Local environment values are not baked into production builds.
+## Multifactor authentication and third-party sign-in
+
+See [AUTH_SETUP.md](AUTH_SETUP.md) for MFA use, provider registration, exact callback URLs, environment configuration, database migration, and security verification.
